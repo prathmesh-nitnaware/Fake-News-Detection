@@ -230,5 +230,21 @@ if __name__ == '__main__':
 </body>
 </html>''')
                 print(f"Created a basic index.html file")
+
+    import requests
+import json
+
+api_url = "YOUR_API_ENDPOINT"
+
+try:
+    response = requests.get(api_url)
+    response.raise_for_status()  # Raises an error for HTTP issues (like 404, 500)
+    data = response.json()  # Ensure valid JSON response
+    print(data)
+except requests.exceptions.RequestException as e:
+    print(f"API Request failed: {e}")
+except json.JSONDecodeError:
+    print("Invalid JSON response. Check the API.")
+
         
     app.run(debug=True)
