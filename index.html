@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .score-container {
+            height: 200px;
+            width: 200px;
+            margin: 0 auto;
+            position: relative;
+            border-radius: 50%;
+            background: #f8f9fa;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .score-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .score-value {
+            font-size: 48px;
+            font-weight: bold;
+        }
+        .score-label {
+            font-size: 18px;
+        }
+        .score-high {
+            color: #28a745;
+        }
+        .score-medium {
+            color: #ffc107;
+        }
+        .score-low {
+            color: #dc3545;
+        }
+        .feature-card {
+            transition: transform 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <header class="text-center mb-5">
+            <h1 class="display-4">Fake News Detector</h1>
+            <p class="lead">Analyze the credibility of news articles with machine learning</p>
+        </header>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="inputTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="text-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#text-input" type="button" role="tab" 
+                                        aria-controls="text-input" aria-selected="true">Text Input</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="url-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#url-input" type="button" role="tab" 
+                                        aria-controls="url-input" aria-selected="false">URL Input</button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content p-3" id="inputTabContent">
+                            <div class="tab-pane fade show active" id="text-input" role="tabpanel" aria-labelledby="text-tab">
+                                <form id="text-form">
+                                    <div class="mb-3">
+                                        <label for="news_content" class="form-label">Paste news content here:</label>
+                                        <textarea class="form-control" id="news_content" rows="8" placeholder="Paste the full text of the news article here..."></textarea>
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="submit" class="btn btn-primary">Analyze Text</button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="url-input" role="tabpanel" aria-labelledby="url-tab">
+                                <form id="url-form">
+                                    <div class="mb-3">
+                                        <label for="news_url" class="form-label">Enter news article URL:</label>
+                                        <input type="url" class="form-control" id="news_url" placeholder="https://example.com/news-article">
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="submit" class="btn btn-primary">Analyze URL</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Results Section (Initially Hidden) -->
+                <div id="results-section" class="mt-5 d-none">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-light">
+                            <h3 class="card-title mb-0">Analysis Results</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="score-container">
+                                        <div class="score-display">
+                                            <div id="credibility-score" class="score-value">--</div>
+                                            <div class="score-label">Credibility Score</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-3">
+                                        <h4 id="credibility-category" class="mb-0">--</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-7">
+                                    <h4>Model Confidence</h4>
+                                    <div class="progress mb-3" style="height: 25px;">
+                                        <div id="traditional-confidence" class="progress-bar" role="progressbar" style="width: 0%" 
+                                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                            Traditional Model: 0%
+                                        </div>
+                                    </div>
+                                    <div class="progress mb-4" style="height: 25px;">
+                                        <div id="ml-confidence" class="progress-bar bg-info" role="progressbar" style="width: 0%" 
+                                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                            Deep Learning Model: 0%
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="feature-explanation" class="mt-4">
+                                        <h4>Content Analysis</h4>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card feature-card h-100">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title">Sentiment</h5>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>Negativity:</span>
+                                                            <span id="negativity-score">0%</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>Positivity:</span>
+                                                            <span id="positivity-score">0%</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card feature-card h-100">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title">Writing Style</h5>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>Exclamations:</span>
+                                                            <span id="exclamation-count">0</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>Questions:</span>
+                                                            <span id="question-count">0</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>UPPERCASE ratio:</span>
+                                                            <span id="uppercase-ratio">0%</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loading Indicator (Initially Hidden) -->
+                <div id="loading-indicator" class="text-center mt-4 d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Analyzing content...</p>
+                </div>
+                
+                <!-- Error Alert (Initially Hidden) -->
+                <div id="error-alert" class="alert alert-danger mt-4 d-none" role="alert">
+                    An error occurred while analyzing the content.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Replace your existing script in index.html with this:
+document.addEventListener('DOMContentLoaded', function() {
+    const textForm = document.getElementById('text-form');
+    const urlForm = document.getElementById('url-form');
+    const resultsSection = document.getElementById('results-section');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const errorAlert = document.getElementById('error-alert');
+    
+    // Text form submission
+    textForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const newsContent = document.getElementById('news_content').value.trim();
+        
+        if (!newsContent) {
+            alert('Please enter news content.');
+            return;
+        }
+        
+        analyzeNews({ news_content: newsContent });
+    });
+    
+    // URL form submission
+    urlForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const newsUrl = document.getElementById('news_url').value.trim();
+        
+        if (!newsUrl) {
+            alert('Please enter a URL.');
+            return;
+        }
+        
+        analyzeNews({ news_url: newsUrl });
+    });
+    
+    // Function to submit data for analysis
+    function analyzeNews(data) {
+        // Show loading indicator
+        loadingIndicator.classList.remove('d-none');
+        resultsSection.classList.add('d-none');
+        errorAlert.classList.add('d-none');
+        
+        // Create form data
+        const formData = new FormData();
+        for (const key in data) {
+            formData.append(key, data[key]);
+        }
+        
+        fetch('/analyze', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || 'Server returned an error');
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            // Hide loading indicator
+            loadingIndicator.classList.add('d-none');
+            
+            // Update UI with results
+            updateResults(result);
+            
+            // Show results section
+            resultsSection.classList.remove('d-none');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadingIndicator.classList.add('d-none');
+            errorAlert.textContent = `Error: ${error.message}`;
+            errorAlert.classList.remove('d-none');
+        });
+    }
+    
+    // Function to update UI with results
+    function updateResults(result) {
+        // Update credibility score
+        const scoreElement = document.getElementById('credibility-score');
+        const score = result.credibility_score;
+        scoreElement.textContent = score;
+        
+        // Set color based on score
+        if (score >= 70) {
+            scoreElement.className = 'score-value score-high';
+        } else if (score >= 40) {
+            scoreElement.className = 'score-value score-medium';
+        } else {
+            scoreElement.className = 'score-value score-low';
+        }
+        
+        // Update category
+        document.getElementById('credibility-category').textContent = result.category;
+        
+        // Update confidence scores
+        const traditionalConfidence = document.getElementById('traditional-confidence');
+        traditionalConfidence.style.width = `${result.confidence.traditional_model}%`;
+        traditionalConfidence.textContent = `Traditional Model: ${result.confidence.traditional_model}%`;
+        
+        const mlConfidence = document.getElementById('ml-confidence');
+        mlConfidence.style.width = `${result.confidence.deep_learning_model}%`;
+        mlConfidence.textContent = `Deep Learning Model: ${result.confidence.deep_learning_model}%`;
+        
+        // Update feature explanation
+        document.getElementById('negativity-score').textContent = `${(result.explanation_features.sentiment.negativity * 100).toFixed(0)}%`;
+        document.getElementById('positivity-score').textContent = `${(result.explanation_features.sentiment.positivity * 100).toFixed(0)}%`;
+        document.getElementById('exclamation-count').textContent = result.explanation_features.style.exclamations;
+        document.getElementById('question-count').textContent = result.explanation_features.style.questions;
+        document.getElementById('uppercase-ratio').textContent = `${(result.explanation_features.style.uppercase_ratio * 100).toFixed(0)}%`;
+    }
+});
+    </script>
+</body>
+</html>
